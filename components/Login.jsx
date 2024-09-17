@@ -13,8 +13,8 @@ export function Login({ onLogin }) {
     e.preventDefault();
     setError(null);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      onLogin(true);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      onLogin(userCredential.user); // Passa l'oggetto utente al callback
     } catch (error) {
       setError(error.message);
     }

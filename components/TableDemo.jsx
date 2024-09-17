@@ -2,22 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { collection, query, onSnapshot, updateDoc, doc, addDoc, deleteDoc } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';  // Assicurati che il percorso sia corretto
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { collection, query, onSnapshot, updateDoc, doc, addDoc, deleteDoc, where } from 'firebase/firestore';
+import { auth, db } from '../lib/firebase';  
+import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Login } from './Login';  // Assicurati che il percorso sia corretto
-import { SignUp } from './SignUp';  // Assicurati che il percorso sia corretto
+import { Login } from './Login';  
+import { SignUp } from './SignUp';  
 
 export function TableDemo() {
   const [tasks, setTasks] = useState([]);
@@ -35,8 +26,8 @@ export function TableDemo() {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      const q = query(collection(db, 'tasks'));
+    if (user && user.uid) {
+      const q = query(collection(db, 'tasks'), where('userId', '==', user.uid));
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const tasksArray = [];
         querySnapshot.forEach((doc) => {
@@ -61,17 +52,26 @@ export function TableDemo() {
 
   const handleAddTask = async () => {
     if (user) {
+      console.log("Aggiungendo un task per l'utente con UID:", user.uid);
       try {
-        await addDoc(collection(db, 'tasks'), {
+        const docRef = await addDoc(collection(db, 'tasks'), {
           task: 'Nuovo task',
-          data: new Date().toISOString().split('T')[0],
+          data: new Date().toLocaleDateString('it-IT', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          }),
           cliente: '',
           ore: '0',
           costo: '0',
+          userId: user.uid, // Associa il task all'utente corrente
         });
+        console.log("Task aggiunto con ID:", docRef.id);
       } catch (error) {
         console.error("Errore durante l'aggiunta del task:", error);
       }
+    } else {
+      console.error("Nessun utente autenticato.");
     }
   };
 
@@ -128,6 +128,7 @@ export function TableDemo() {
       </div>
     );
   }
+
   return (
     <div>
       <Button onClick={handleLogout} className="mb-4">Logout</Button>

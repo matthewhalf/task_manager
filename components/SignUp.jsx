@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../lib/firebase';  // Assicurati che il percorso sia corretto
+import { auth, db } from '../lib/firebase';  // Assicurati che il percorso sia corretto
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { setDoc, doc } from 'firebase/firestore';
 
 export function SignUp({ onSignUp }) {
   const [email, setEmail] = useState('');
@@ -16,7 +17,14 @@ export function SignUp({ onSignUp }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: displayName });
-      onSignUp(userCredential.user);
+      
+      // Crea il documento di permessi per il nuovo utente
+      const userId = userCredential.user.uid;
+      await setDoc(doc(db, 'user_permissions', userId), {
+        allowedTables: ["tasks"]
+      });
+
+      onSignUp(userCredential.user); // Passa l'oggetto utente al callback
     } catch (error) {
       setError(error.message);
     }
