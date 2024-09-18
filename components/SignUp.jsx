@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';  // Assicurati che il percorso sia corretto
@@ -31,8 +33,10 @@ export function SignUp({ onSignUp }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className='min-h-[60vh] flex flex-col justify-center items-center'>
+    <form onSubmit={handleSubmit} className="space-y-4 m-auto w-fit p-6 rounded-lg border-solid border-slate-50 border shadow-2xl flex flex-col justify-center items-center ">
       <div>
+      <h1 className="text-2xl font-bold mb-8">Task manager app</h1>  
         <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">Nome</label>
         <Input
           type="text"
@@ -65,5 +69,6 @@ export function SignUp({ onSignUp }) {
       {error && <div className="text-red-500">{error}</div>}
       <Button type="submit">Registrati</Button>
     </form>
+    </div>
   );
 }

@@ -8,7 +8,8 @@ import { Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, Tabl
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Login } from './Login';  
-import { SignUp } from './SignUp';  
+import { SignUp } from './SignUp';
+import { ChevronRightIcon } from "@radix-ui/react-icons"  
 
 export function TableDemo() {
   const [tasks, setTasks] = useState([]);
@@ -55,7 +56,7 @@ export function TableDemo() {
       console.log("Aggiungendo un task per l'utente con UID:", user.uid);
       try {
         const docRef = await addDoc(collection(db, 'tasks'), {
-          task: 'Nuovo task',
+          task: '',
           data: new Date().toLocaleDateString('it-IT', {
             day: '2-digit',
             month: '2-digit',
@@ -63,7 +64,7 @@ export function TableDemo() {
           }),
           cliente: '',
           ore: '0',
-          costo: '0',
+          costo: '25',
           userId: user.uid, // Associa il task all'utente corrente
         });
         console.log("Task aggiunto con ID:", docRef.id);
@@ -89,6 +90,10 @@ export function TableDemo() {
     return tasks.reduce((total, task) => total + parseFloat(task.costo), 0).toFixed(2);
   };
 
+  const totalHour = () => {
+    return tasks.reduce((total, task) => total + parseFloat(task.ore), 0);
+  };
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -103,11 +108,11 @@ export function TableDemo() {
 
   if (!user) {
     return (
-      <div>
+      <div className='min-h-[60vh] flex flex-col justify-center items-center'>
         {isLogin ? (
           <>
             <Login onLogin={() => {}} />
-            <p className="mt-4">
+            <p>
               Non hai un account?{' '}
               <Button onClick={() => setIsLogin(false)} variant="link">
                 Registrati
@@ -131,8 +136,11 @@ export function TableDemo() {
 
   return (
     <div>
-      <Button onClick={handleLogout} className="mb-4">Logout</Button>
-      <Button onClick={handleAddTask} className="mb-4 ml-4">Aggiungi Task</Button>
+      <div className="flex justify-between gap-5 px-4">
+        <h1 className="text-2xl font-bold mb-8">Task manager app</h1>  
+        <Button onClick={handleLogout} className="mb-4">Logout<ChevronRightIcon className="h-4 w-4" /></Button>
+      </div>
+      <Button onClick={handleAddTask} className="mb-4 ml-4 bg-green-800 hover:bg-green-600">Aggiungi Task</Button>
       <Table>
         <TableCaption>Una lista delle task recenti</TableCaption>
         <TableHeader>
@@ -146,29 +154,48 @@ export function TableDemo() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tasks.map((task) => (
-            <TableRow key={task.id}>
-              {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
-                <TableCell key={field}>
-                  <Input
-                    value={task[field]}
-                    onChange={(e) => handleChange(task.id, field, e.target.value)}
-                    className="w-full"
-                  />
-                  {field === 'ore' && ' ore'}
-                  {field === 'costo' && '€'}
+          {user ? (
+            tasks.map((task) => (
+              <TableRow key={task.id}>
+                {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
+                  <TableCell key={field}>
+                    <Input
+                      value={task[field]}
+                      onChange={(e) => handleChange(task.id, field, e.target.value)}
+                      className="w-full"
+                    />
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
                 </TableCell>
-              ))}
-              <TableCell>
-                <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
-              </TableCell>
-            </TableRow>
-          ))}
+              </TableRow>
+            ))
+          ) : (
+            tasks.map((task) => (
+              <TableRow key={task.id}>
+                {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
+                  <TableCell key={field}>
+                    <Input
+                      value={task[field]}
+                      onChange={(e) => handleChange(task.id, field, e.target.value)}
+                      className="w-full"
+                    />
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
+                </TableCell>
+              </TableRow>
+              ))
+          )}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell colSpan={4}>Totale</TableCell>
-            <TableCell>€{calculateTotal()}</TableCell>
+            <TableCell colSpan={3}>Totale</TableCell>
+            <TableCell colSpan={1}>{totalHour()} ore</TableCell>
+            <TableCell colSpan={1}>€{calculateTotal()}</TableCell>
+            <TableCell></TableCell>
           </TableRow>
         </TableFooter>
       </Table>
