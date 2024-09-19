@@ -53,7 +53,6 @@ export function TableDemo() {
 
   const handleAddTask = async () => {
     if (user) {
-      console.log("Aggiungendo un task per l'utente con UID:", user.uid);
       try {
         const docRef = await addDoc(collection(db, 'tasks'), {
           task: '',
@@ -65,7 +64,7 @@ export function TableDemo() {
           cliente: '',
           ore: '0',
           costo: '25',
-          userId: user.uid, // Associa il task all'utente corrente
+          userId: user.uid,
         });
         console.log("Task aggiunto con ID:", docRef.id);
       } catch (error) {
@@ -97,6 +96,7 @@ export function TableDemo() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      // After successful logout, the onAuthStateChanged listener will update the user state
     } catch (error) {
       console.error("Errore durante il logout", error);
     }
@@ -112,12 +112,6 @@ export function TableDemo() {
         {isLogin ? (
           <>
             <Login onLogin={() => {}} />
-            <p>
-              Non hai un account?{' '}
-              <Button onClick={() => setIsLogin(false)} variant="link">
-                Registrati
-              </Button>
-            </p>
           </>
         ) : (
           <>
@@ -136,13 +130,21 @@ export function TableDemo() {
 
   return (
     <div>
-      <div className="flex justify-between gap-5 px-4">
-        <h1 className="text-2xl font-bold mb-8">Task manager app</h1>  
-        <Button onClick={handleLogout} className="mb-4">Logout<ChevronRightIcon className="h-4 w-4" /></Button>
+      <div className="flex justify-between items-center gap-5 px-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold">Task manager</h1>
+          <p className="text-sm text-gray-600">Benvenuto, {user.displayName || user.email}
+          </p>
+        </div>
+        <Button onClick={handleLogout}>Logout<ChevronRightIcon className="h-4 w-4 ml-2" /></Button>
       </div>
       <Button onClick={handleAddTask} className="mb-4 ml-4 bg-green-800 hover:bg-green-600">Aggiungi Task</Button>
       <Table>
-        <TableCaption>Una lista delle task recenti</TableCaption>
+        <TableCaption>Una lista delle task recenti svolte per {user.email === "giulio.cinelli@pianoweb.eu" ? (
+            <span className='font-bold text-black'>Pianoweb</span>
+          ) : (
+            <span className='font-bold text-black'>Vivarelli Consulting</span>
+          )}</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Task</TableHead>
@@ -154,41 +156,22 @@ export function TableDemo() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {user ? (
-            tasks.map((task) => (
-              <TableRow key={task.id}>
-                {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
-                  <TableCell key={field}>
-                    <Input
-                      value={task[field]}
-                      onChange={(e) => handleChange(task.id, field, e.target.value)}
-                      className="w-full"
-                    />
-                  </TableCell>
-                ))}
-                <TableCell>
-                  <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
+          {tasks.map((task) => (
+            <TableRow key={task.id}>
+              {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
+                <TableCell key={field}>
+                  <Input
+                    value={task[field]}
+                    onChange={(e) => handleChange(task.id, field, e.target.value)}
+                    className="w-full"
+                  />
                 </TableCell>
-              </TableRow>
-            ))
-          ) : (
-            tasks.map((task) => (
-              <TableRow key={task.id}>
-                {['task', 'data', 'cliente', 'ore', 'costo'].map((field) => (
-                  <TableCell key={field}>
-                    <Input
-                      value={task[field]}
-                      onChange={(e) => handleChange(task.id, field, e.target.value)}
-                      className="w-full"
-                    />
-                  </TableCell>
-                ))}
-                <TableCell>
-                  <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
-                </TableCell>
-              </TableRow>
-              ))
-          )}
+              ))}
+              <TableCell>
+                <Button onClick={() => handleDeleteTask(task.id)} variant="destructive">Elimina</Button>
+              </TableCell>
+            </TableRow>
+          ))}
         </TableBody>
         <TableFooter>
           <TableRow>
