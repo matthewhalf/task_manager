@@ -1,6 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { useRouter } from 'next/navigation'; // Importa il router
 import { auth, db } from '../lib/firebase';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ export function SignUp({ onSignUp }) {
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState(null);
+  const router = useRouter(); // Inizializza il router
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +38,9 @@ export function SignUp({ onSignUp }) {
       });
 
       onSignUp(userCredential.user); // Passa l'oggetto utente al callback
+
+      // Reindirizza l'utente alla pagina basata sul displayName
+      router.push(`/users/${displayName}`);
     } catch (error) {
       setError(error.message);
     }

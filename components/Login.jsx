@@ -1,5 +1,6 @@
 "use client"
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation'; // Importa il router
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, db } from '../lib/firebase';  // Assicurati che il percorso sia corretto
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ export function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
+  const router = useRouter();  // Inizializza il router
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,15 +24,15 @@ export function Login({ onLogin }) {
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        // Aggiorna l'oggetto utente con le informazioni dal Firestore
         const updatedUser = {
           ...userCredential.user,
           displayName: userData.displayName || userCredential.user.displayName,
-          // Puoi aggiungere qui altre informazioni dal documento Firestore se necessario
         };
-        onLogin(updatedUser); // Passa l'oggetto utente aggiornato al callback
+        onLogin(updatedUser);  // Passa l'utente aggiornato
+        router.push(`/users/${updatedUser.displayName}`); // Reindirizza alla pagina basata sullo slug del nome utente
       } else {
-        onLogin(userCredential.user); // Se il documento non esiste, passa l'oggetto utente originale
+        onLogin(userCredential.user);  // Se non esiste un documento utente
+        router.push(`/users/${userCredential.user.displayName}`);  // Reindirizza comunque
       }
     } catch (error) {
       setError(error.message);
